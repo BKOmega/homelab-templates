@@ -1,9 +1,15 @@
 # Docker socket proxy
 
-Read-mostly HTTP proxy for selected Docker API endpoints. It consolidates several
-host-specific deployments into one reusable template and denies mutating operations by
-default.
+Read-only HTTP proxy for selected Docker API endpoints. Its default surface permits
+container discovery plus Docker API ping and version negotiation. Events, images, system
+information, networks, services, tasks, and volumes remain disabled unless explicitly
+enabled for a trusted consumer in `.env`.
 
-The proxy still exposes sensitive Docker metadata and runs privileged. Do not expose port
-2375 to an untrusted network. Prefer leaving it on the external `docker-api` network and
-remove the host port when only containers need access.
+The proxy is not privileged, uses a read-only filesystem, and explicitly denies archive,
+filesystem-change, export, log, process-list, and mutation operations. It has no published
+host port and joins the external `docker-api` network for trusted cross-stack consumers.
+
+Docker API proxy traffic is unauthenticated. Membership of `docker-api` grants every member
+the visibility enabled here, so use a dedicated network and never attach general application
+containers to it. Prefer a separate narrowly configured proxy and private network where a
+consumer can be isolated within one stack.
