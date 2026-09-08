@@ -1,0 +1,136 @@
+x-media-common: &media-common
+  restart: unless-stopped
+  networks:
+    - media
+
+services:
+  seerr:
+    <<: *media-common
+    image: ghcr.io/seerr-team/seerr:latest
+    user: "${PUID:-1000}:${PGID:-1000}"
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:5055:5055"
+    environment:
+      TZ: ${TZ:-Europe/London}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      PORT: "5055"
+    volumes:
+      - ./data/seerr:/app/config
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1"]
+      start_period: 20s
+      interval: 15s
+      timeout: 3s
+      retries: 3
+
+  maintainerr:
+    <<: *media-common
+    image: ghcr.io/maintainerr/maintainerr:latest
+    user: "${PUID:-1000}:${PGID:-1000}"
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:6246:6246"
+    environment:
+      TZ: ${TZ:-Europe/London}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./data/maintainerr:/opt/data
+
+  calibre:
+    <<: *media-common
+    image: lscr.io/linuxserver/calibre:latest
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:8180:8080"
+      - "${BIND_ADDRESS:-127.0.0.1}:8181:8181"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/London}
+    volumes:
+      - ./data/calibre:/config
+      - ${BOOKS_DATA_PATH:-./media/books}:/data
+
+  profilarr:
+    <<: *media-common
+    image: santiagosayshey/profilarr:latest
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:6868:6868"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/London}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./data/profilarr:/config
+
+  tautulli:
+    <<: *media-common
+    image: ghcr.io/tautulli/tautulli:latest
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:9191:8181"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/London}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./data/tautulli:/config
+
+  sonarr-exporter:
+    <<: *media-common
+    image: ghcr.io/onedr0p/exportarr:latest
+    command: ["sonarr"]
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:9707:9707"
+    environment:
+      PORT: "9707"
+      URL: ${SONARR_URL:-http://sonarr.example.internal:8989}
+      APIKEY: ${SONARR_API_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+  radarr-exporter:
+    <<: *media-common
+    image: ghcr.io/onedr0p/exportarr:latest
+    command: ["radarr"]
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:9708:9708"
+    environment:
+      PORT: "9708"
+      URL: ${RADARR_URL:-http://radarr.example.internal:7878}
+      APIKEY: ${RADARR_API_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+  prowlarr-exporter:
+    <<: *media-common
+    image: ghcr.io/onedr0p/exportarr:latest
+    command: ["prowlarr"]
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:9710:9710"
+    environment:
+      PORT: "9710"
+      URL: ${PROWLARR_URL:-http://prowlarr.example.internal:9696}
+      APIKEY: ${PROWLARR_API_KEY}
+      PROWLARR__BACKFILL: ${PROWLARR_BACKFILL:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+  sabnzbd-exporter:
+    <<: *media-common
+    image: ghcr.io/onedr0p/exportarr:latest
+    command: ["sabnzbd"]
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:9711:9711"
+    environment:
+      PORT: "9711"
+      URL: ${SABNZBD_URL:-http://sabnzbd.example.internal:8192}
+      APIKEY: ${SABNZBD_API_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+networks:
+  media:
+    external: true
+    name: ${MEDIA_NETWORK:-media}

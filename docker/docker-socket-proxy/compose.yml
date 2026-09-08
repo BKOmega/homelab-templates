@@ -1,0 +1,46 @@
+services:
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PROXY_PORT:-2375}:2375"
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      POST: ${ALLOW_POST:-0}
+      AUTH: "0"
+      BUILD: "0"
+      COMMIT: "0"
+      CONFIGS: "0"
+      CONTAINERS: ${ALLOW_CONTAINERS:-1}
+      DISTRIBUTION: "0"
+      EVENTS: ${ALLOW_EVENTS:-1}
+      EXEC: "0"
+      GRPC: "0"
+      IMAGES: ${ALLOW_IMAGES:-1}
+      INFO: ${ALLOW_INFO:-1}
+      LOGS: ${ALLOW_LOGS:-0}
+      NETWORKS: ${ALLOW_NETWORKS:-1}
+      NODES: "0"
+      PING: "1"
+      PLUGINS: "0"
+      SECRETS: "0"
+      SERVICES: ${ALLOW_SERVICES:-1}
+      SESSION: "0"
+      SWARM: "0"
+      SYSTEM: "0"
+      TASKS: ${ALLOW_TASKS:-1}
+      VERSION: "1"
+      VOLUMES: ${ALLOW_VOLUMES:-0}
+      ALLOW_START: "0"
+      ALLOW_STOP: "0"
+      ALLOW_RESTARTS: "0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - docker-api
+
+networks:
+  docker-api:
+    external: true
+    name: ${DOCKER_API_NETWORK:-docker-api}

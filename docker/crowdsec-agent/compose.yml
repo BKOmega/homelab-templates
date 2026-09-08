@@ -1,0 +1,27 @@
+services:
+  crowdsec-agent:
+    image: crowdsecurity/crowdsec:v1.8.0
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${CROWDSEC_METRICS_PORT:-6060}:6060"
+    environment:
+      COLLECTIONS: ${COLLECTIONS:-crowdsecurity/linux crowdsecurity/traefik}
+      CUSTOM_HOSTNAME: ${CROWDSEC_INSTANCE_NAME:-crowdsec-agent}
+      DISABLE_LOCAL_API: "true"
+      LOCAL_API_URL: ${CROWDSEC_LAPI_URL}
+      AGENT_USERNAME: ${AGENT_USERNAME}
+      AGENT_PASSWORD: ${AGENT_PASSWORD}
+    volumes:
+      - ./config/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+      - ./data:/var/lib/crowdsec/data
+      - ${AUTH_LOG_PATH:-/var/log/auth.log}:/var/log/host/auth.log:ro
+      - ${PROXY_LOG_PATH:-/var/log/traefik}:/var/log/proxy:ro
+    networks:
+      - security
+
+networks:
+  security:
+    external: true
+    name: ${SECURITY_NETWORK:-security}

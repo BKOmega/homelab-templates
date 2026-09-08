@@ -1,0 +1,66 @@
+services:
+  mongo:
+    image: mongo
+    restart: always
+    command: --quiet --wiredTigerCacheSizeGB 0.25
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${KOMODO_DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${KOMODO_DB_PASSWORD}
+    volumes:
+      - ./data/mongo:/data/db
+      - ./data/mongo-config:/data/configdb
+    networks:
+      - management
+
+  core:
+    image: ghcr.io/moghtech/komodo-core:${KOMODO_IMAGE_TAG:-latest}
+    restart: always
+    depends_on:
+      - mongo
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${KOMODO_PORT:-9120}:9120"
+    environment:
+      KOMODO_DATABASE_ADDRESS: mongodb://mongo:27017
+      KOMODO_DATABASE_USERNAME: ${KOMODO_DB_USERNAME}
+      KOMODO_DATABASE_PASSWORD: ${KOMODO_DB_PASSWORD}
+      KOMODO_PASSKEY: ${KOMODO_PASSKEY}
+      KOMODO_JWT_SECRET: ${KOMODO_JWT_SECRET}
+      KOMODO_WEBHOOK_SECRET: ${KOMODO_WEBHOOK_SECRET}
+      KOMODO_HOST: ${KOMODO_HOST}
+      KOMODO_LOCAL_AUTH: ${KOMODO_LOCAL_AUTH:-true}
+      KOMODO_DISABLE_USER_REGISTRATION: ${KOMODO_DISABLE_USER_REGISTRATION:-true}
+      KOMODO_INIT_ADMIN_USERNAME: ${KOMODO_INIT_ADMIN_USERNAME:-admin}
+      KOMODO_INIT_ADMIN_PASSWORD: ${KOMODO_INIT_ADMIN_PASSWORD}
+      KOMODO_OIDC_ENABLED: ${KOMODO_OIDC_ENABLED:-false}
+      KOMODO_OIDC_PROVIDER: ${KOMODO_OIDC_PROVIDER:-}
+      KOMODO_OIDC_CLIENT_ID: ${KOMODO_OIDC_CLIENT_ID:-}
+      KOMODO_OIDC_CLIENT_SECRET: ${KOMODO_OIDC_CLIENT_SECRET:-}
+      KOMODO_OIDC_REDIRECT_HOST: ${KOMODO_OIDC_REDIRECT_HOST:-}
+    volumes:
+      - ./backups:/backups
+      - ./syncs:/syncs
+    networks:
+      - management
+
+  periphery:
+    image: ghcr.io/moghtech/komodo-periphery:${KOMODO_IMAGE_TAG:-latest}
+    restart: always
+    security_opt:
+      - apparmor=unconfined
+    environment:
+      PERIPHERY_ROOT_DIRECTORY: /etc/komodo
+      PERIPHERY_PASSKEYS: ${KOMODO_PASSKEY}
+      PERIPHERY_SSL_ENABLED: ${PERIPHERY_SSL_ENABLED:-false}
+      PERIPHERY_DISABLE_TERMINALS: ${PERIPHERY_DISABLE_TERMINALS:-false}
+      PERIPHERY_ALLOWED_IPS: ${PERIPHERY_ALLOWED_IPS:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/proc
+      - ./data/periphery:/etc/komodo
+    networks:
+      - management
+
+networks:
+  management:
+    external: true
+    name: ${MANAGEMENT_NETWORK:-management}

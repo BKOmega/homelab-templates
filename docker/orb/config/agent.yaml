@@ -1,0 +1,44 @@
+orb:
+  config_manager:
+    active: local
+
+  backends:
+    network_discovery: {}
+    snmp_discovery: {}
+    common:
+      diode:
+        target: ${DIODE_TARGET}
+        client_id: ${DIODE_CLIENT_ID}
+        client_secret: ${DIODE_CLIENT_SECRET}
+        agent_name: orb-example
+
+  policies:
+    network_discovery:
+      example-network:
+        config:
+          schedule: "17 */2 * * *"
+        scope:
+          targets:
+            - 10.10.10.0/24
+
+    snmp_discovery:
+      example-device:
+        config:
+          schedule: "0 */6 * * *"
+          timeout: 300
+          snmp_timeout: 10
+          retries: 3
+          lookup_extensions_dir: /opt/orb/snmp-extensions
+        scope:
+          targets:
+            - host: 10.20.20.10
+              override_defaults:
+                role: network-device
+          authentication:
+            protocol_version: SNMPv3
+            security_level: authPriv
+            username: ${SNMP_USERNAME}
+            auth_protocol: SHA
+            auth_passphrase: ${SNMP_AUTH_PASSPHRASE}
+            priv_protocol: AES
+            priv_passphrase: ${SNMP_PRIV_PASSPHRASE}

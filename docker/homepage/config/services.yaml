@@ -1,0 +1,15 @@
+- Monitoring:
+    - Grafana:
+        href: https://grafana.example.internal
+        description: Metrics and dashboards
+        icon: grafana
+    - Prometheus:
+        href: https://prometheus.example.internal
+        description: Metrics collection
+        icon: prometheus
+
+- Infrastructure:
+    - Reverse proxy:
+        href: https://proxy.example.internal
+        description: Reverse-proxy dashboard
+        icon: traefik

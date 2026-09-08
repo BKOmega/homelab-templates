@@ -1,0 +1,164 @@
+x-arr-common: &arr-common
+  restart: unless-stopped
+  network_mode: service:gluetun
+  depends_on:
+    gluetun:
+      condition: service_healthy
+      restart: true
+  environment:
+    PUID: ${PUID:-1000}
+    PGID: ${PGID:-1000}
+    TZ: ${TZ:-Europe/London}
+
+services:
+  gluetun:
+    image: ghcr.io/qdm12/gluetun:latest
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:8000:8000"
+      - "${BIND_ADDRESS:-127.0.0.1}:8085:8085"
+      - "${BIND_ADDRESS:-127.0.0.1}:8989:8989"
+      - "${BIND_ADDRESS:-127.0.0.1}:9696:9696"
+      - "${BIND_ADDRESS:-127.0.0.1}:7878:7878"
+      - "${BIND_ADDRESS:-127.0.0.1}:8192:8192"
+      - "${BIND_ADDRESS:-127.0.0.1}:8191:8191"
+      - "${BIND_ADDRESS:-127.0.0.1}:5454:5454"
+      - "${BIND_ADDRESS:-127.0.0.1}:5656:5656"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/London}
+      VPN_SERVICE_PROVIDER: ${VPN_SERVICE_PROVIDER}
+      VPN_TYPE: ${VPN_TYPE:-wireguard}
+      WIREGUARD_PRIVATE_KEY: ${WIREGUARD_PRIVATE_KEY}
+      WIREGUARD_PUBLIC_KEY: ${WIREGUARD_PUBLIC_KEY:-}
+      SERVER_COUNTRIES: ${SERVER_COUNTRIES:-United Kingdom}
+      VPN_INTERFACE: ${VPN_INTERFACE:-tun0}
+      UPDATER_PERIOD: ${UPDATER_PERIOD:-24h}
+    volumes:
+      - ./data/gluetun:/gluetun
+    healthcheck:
+      test: ["CMD", "/gluetun-entrypoint", "healthcheck"]
+      interval: 90s
+      timeout: 10s
+      retries: 3
+      start_period: 2m
+    networks:
+      - media
+
+  prowlarr:
+    <<: *arr-common
+    image: lscr.io/linuxserver/prowlarr:latest
+    volumes:
+      - ./data/prowlarr:/config
+      - ${MEDIA_DATA_PATH:-./media}:/data
+
+  sonarr:
+    <<: *arr-common
+    image: lscr.io/linuxserver/sonarr:latest
+    volumes:
+      - ./data/sonarr:/config
+      - ${MEDIA_DATA_PATH:-./media}:/data
+
+  radarr:
+    <<: *arr-common
+    image: lscr.io/linuxserver/radarr:latest
+    volumes:
+      - ./data/radarr:/config
+      - ${MEDIA_DATA_PATH:-./media}:/data
+
+  qbittorrent:
+    <<: *arr-common
+    image: lscr.io/linuxserver/qbittorrent:latest
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/London}
+      WEBUI_PORT: "8085"
+      TORRENTING_PORT: ${TORRENTING_PORT:-6881}
+    volumes:
+      - ./data/qbittorrent:/config
+      - ${MEDIA_DATA_PATH:-./media}/torrents:/data/torrents
+
+  sabnzbd:
+    <<: *arr-common
+    image: ghcr.io/hotio/sabnzbd:latest
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/London}
+      UMASK: ${UMASK:-002}
+      WEBUI_PORTS: "8192/tcp"
+    volumes:
+      - ./data/sabnzbd:/config
+      - ${MEDIA_DATA_PATH:-./media}/usenet:/data/usenet
+
+  flaresolverr:
+    <<: *arr-common
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/London}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./data/flaresolverr:/config
+
+  notifiarr:
+    <<: *arr-common
+    image: golift/notifiarr:latest
+    volumes:
+      - ./data/notifiarr:/config
+      - /var/run/utmp:/var/run/utmp:ro
+      - /etc/machine-id:/etc/machine-id:ro
+
+  unpackerr:
+    <<: *arr-common
+    image: golift/unpackerr:latest
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/London}
+      UN_SONARR_0_URL: http://localhost:8989
+      UN_SONARR_0_API_KEY: ${SONARR_API_KEY}
+      UN_RADARR_0_URL: http://localhost:7878
+      UN_RADARR_0_API_KEY: ${RADARR_API_KEY}
+      UN_INTERVAL: ${UNPACKERR_INTERVAL:-2m}
+    volumes:
+      - ${MEDIA_DATA_PATH:-./media}:/data
+      - ./data/unpackerr/logs:/logs
+
+  swaparr-radarr:
+    <<: *arr-common
+    image: ghcr.io/thijmengthn/swaparr:latest
+    environment:
+      BASEURL: http://localhost:7878
+      APIKEY: ${RADARR_API_KEY}
+      PLATFORM: radarr
+      MAX_DOWNLOAD_TIME: ${SWAPARR_MAX_DOWNLOAD_TIME:-24}
+      MAX_STRIKES: ${SWAPARR_MAX_STRIKES:-3}
+      REMOVE_FROM_CLIENT: ${SWAPARR_REMOVE_FROM_CLIENT:-true}
+      DRY_RUN: ${SWAPARR_DRY_RUN:-true}
+      SCAN_INTERVAL: ${SWAPARR_SCAN_INTERVAL:-30}
+
+  swaparr-sonarr:
+    <<: *arr-common
+    image: ghcr.io/thijmengthn/swaparr:latest
+    environment:
+      BASEURL: http://localhost:8989
+      APIKEY: ${SONARR_API_KEY}
+      PLATFORM: sonarr
+      MAX_DOWNLOAD_TIME: ${SWAPARR_MAX_DOWNLOAD_TIME:-24}
+      MAX_STRIKES: ${SWAPARR_MAX_STRIKES:-3}
+      REMOVE_FROM_CLIENT: ${SWAPARR_REMOVE_FROM_CLIENT:-true}
+      DRY_RUN: ${SWAPARR_DRY_RUN:-true}
+      SCAN_INTERVAL: ${SWAPARR_SCAN_INTERVAL:-30}
+
+networks:
+  media:
+    external: true
+    name: ${MEDIA_NETWORK:-media}

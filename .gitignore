@@ -1,4 +1,39 @@
-# never commit secrets
+# Never commit local environment files.
 **/.env
 **/.env.*
 !**/.env.example
+
+# Credentials and private key material.
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+**/*.jks
+**/id_rsa*
+**/id_ed25519*
+**/credentials.json
+**/client-credentials.json
+**/htpasswd
+**/passwords
+**/acme.json*
+
+# Runtime and generated state.
+docker/*/data/
+docker/*/logs/
+docker/*/log/
+docker/*/backups/
+docker/*/backup/
+docker/*/cache/
+docker/*/storage/
+docker/*/uploads/
+docker/*/media/
+docker/*/photos/
+**/*.db
+**/*.db-*
+**/*.sqlite
+**/*.sqlite3
+**/*.pid
+**/*.sock
+**/*.log
+**/*.dump
+**/*.bak
