@@ -1,0 +1,30 @@
+services:
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${SPEEDTEST_PORT:-8080}:80"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      APP_KEY: ${APP_KEY}
+      APP_NAME: ${APP_NAME:-Speedtest Tracker}
+      APP_TIMEZONE: ${TZ:-Europe/London}
+      DISPLAY_TIMEZONE: ${TZ:-Europe/London}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      ASSET_URL: ${ASSET_URL:-}
+      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
+      SPEEDTEST_SCHEDULE: ${SPEEDTEST_SCHEDULE:-0 */6 * * *}
+      PUBLIC_DASHBOARD: ${PUBLIC_DASHBOARD:-false}
+      THRESHOLD_ENABLED: ${THRESHOLD_ENABLED:-false}
+      THRESHOLD_DOWNLOAD: ${THRESHOLD_DOWNLOAD:-}
+      THRESHOLD_UPLOAD: ${THRESHOLD_UPLOAD:-}
+    volumes:
+      - ./data:/config
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    external: true
+    name: ${MONITORING_NETWORK:-monitoring}

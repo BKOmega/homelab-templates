@@ -1,0 +1,46 @@
+services:
+  whats-up-docker:
+    image: ghcr.io/getwud/wud:latest
+    restart: unless-stopped
+    user: "${PUID:-1000}:${PGID:-1000}"
+    group_add:
+      - ${DOCKER_GID:-999}
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${WUD_HOST_PORT:-3000}:3000"
+    environment:
+      WUD_SERVER_ENABLED: "true"
+      WUD_SERVER_PORT: "3000"
+      WUD_LOG_LEVEL: ${WUD_LOG_LEVEL:-info}
+      WUD_WATCHER_LOCAL_SOCKET: /var/run/docker.sock
+      WUD_WATCHER_LOCAL_WATCHBYDEFAULT: ${WUD_WATCH_BY_DEFAULT:-false}
+      WUD_WATCHER_LOCAL_CRON: ${WUD_CRON:-0 6 * * *}
+      WUD_WATCHER_REMOTE_HOST: ${REMOTE_DOCKER_HOST:-}
+      WUD_WATCHER_REMOTE_PORT: ${REMOTE_DOCKER_PORT:-2375}
+      WUD_WATCHER_REMOTE_WATCHBYDEFAULT: ${REMOTE_WATCH_BY_DEFAULT:-false}
+      WUD_REGISTRY_HUB_PUBLIC_LOGIN: ${DOCKER_HUB_USERNAME:-}
+      WUD_REGISTRY_HUB_PUBLIC_PASSWORD: ${DOCKER_HUB_TOKEN:-}
+      WUD_REGISTRY_GHCR_PUBLIC_USERNAME: ${GHCR_USERNAME:-}
+      WUD_REGISTRY_GHCR_PUBLIC_TOKEN: ${GHCR_TOKEN:-}
+      WUD_REGISTRY_LSCR_PUBLIC_USERNAME: ${LSCR_USERNAME:-}
+      WUD_REGISTRY_LSCR_PUBLIC_TOKEN: ${LSCR_TOKEN:-}
+      WUD_TRIGGER_SMTP_MAIL_HOST: ${SMTP_HOST:-}
+      WUD_TRIGGER_SMTP_MAIL_PORT: ${SMTP_PORT:-587}
+      WUD_TRIGGER_SMTP_MAIL_USER: ${SMTP_USERNAME:-}
+      WUD_TRIGGER_SMTP_MAIL_PASS: ${SMTP_PASSWORD:-}
+      WUD_TRIGGER_SMTP_MAIL_FROM: ${SMTP_FROM:-}
+      WUD_TRIGGER_SMTP_MAIL_TO: ${SMTP_TO:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - management
+
+networks:
+  management:
+    external: true
+    name: ${MANAGEMENT_NETWORK:-management}

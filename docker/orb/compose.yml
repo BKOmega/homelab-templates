@@ -1,0 +1,25 @@
+services:
+  orb-agent:
+    image: netboxlabs/orb-agent:latest
+    restart: unless-stopped
+    network_mode: host
+    privileged: true
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    environment:
+      DIODE_TARGET: ${DIODE_TARGET}
+      DIODE_CLIENT_ID: ${DIODE_CLIENT_ID}
+      DIODE_CLIENT_SECRET: ${DIODE_CLIENT_SECRET}
+      SNMP_USERNAME: ${SNMP_USERNAME}
+      SNMP_AUTH_PASSPHRASE: ${SNMP_AUTH_PASSPHRASE}
+      SNMP_PRIV_PASSPHRASE: ${SNMP_PRIV_PASSPHRASE}
+      TZ: ${TZ:-Europe/London}
+    volumes:
+      - ./config/agent.yaml:/opt/orb/agent.yaml:ro
+    command: ["run", "-c", "/opt/orb/agent.yaml"]
+    healthcheck:
+      test: ["CMD", "orb", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

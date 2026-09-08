@@ -1,0 +1,26 @@
+services:
+  arcane-agent:
+    image: ghcr.io/getarcaneapp/agent:latest
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${AGENT_PORT:-3553}:3553"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      AGENT_MODE: ${AGENT_MODE:-true}
+      EDGE_AGENT: ${EDGE_AGENT:-true}
+      EDGE_TRANSPORT: ${EDGE_TRANSPORT:-http}
+      MANAGER_API_URL: ${MANAGER_API_URL}
+      AGENT_TOKEN: ${AGENT_TOKEN}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+      - ./builds:/builds
+      - ./backups:/backups
+    networks:
+      - management
+
+networks:
+  management:
+    external: true
+    name: ${MANAGEMENT_NETWORK:-management}

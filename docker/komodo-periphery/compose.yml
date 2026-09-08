@@ -1,0 +1,26 @@
+services:
+  periphery:
+    image: ghcr.io/moghtech/komodo-periphery:${KOMODO_IMAGE_TAG:-latest}
+    restart: always
+    security_opt:
+      - apparmor=unconfined
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PERIPHERY_PORT:-8120}:8120"
+    environment:
+      PERIPHERY_ROOT_DIRECTORY: /etc/komodo
+      PERIPHERY_PASSKEYS: ${KOMODO_PASSKEY}
+      PERIPHERY_SSL_ENABLED: ${PERIPHERY_SSL_ENABLED:-false}
+      PERIPHERY_DISABLE_TERMINALS: ${PERIPHERY_DISABLE_TERMINALS:-false}
+      PERIPHERY_INCLUDE_DISK_MOUNTS: ${PERIPHERY_INCLUDE_DISK_MOUNTS:-/etc/hostname=/etc/hosts=/proc}
+      PERIPHERY_ALLOWED_IPS: ${PERIPHERY_ALLOWED_IPS}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/proc
+      - ./data:/etc/komodo
+    networks:
+      - management
+
+networks:
+  management:
+    external: true
+    name: ${MANAGEMENT_NETWORK:-management}

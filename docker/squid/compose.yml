@@ -1,0 +1,12 @@
+services:
+  squid:
+    image: ubuntu/squid
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${SQUID_PORT:-3128}:3128"
+    environment:
+      TZ: ${TZ:-Europe/London}
+    volumes:
+      - ./config/squid.conf:/etc/squid/squid.conf:ro
+      - ./secrets/passwords:/etc/squid/passwords:ro
+      - ./data/cache:/var/spool/squid

@@ -1,0 +1,92 @@
+x-icloudpd-common: &icloudpd-common
+  image: icloudpd/icloudpd:latest
+  restart: unless-stopped
+  stdin_open: true
+  tty: true
+  environment:
+    PUID: ${PUID:-1000}
+    PGID: ${PGID:-1000}
+    TZ: ${TZ:-Europe/London}
+  volumes:
+    - ${PHOTO_LIBRARY_PATH:-./photos}:/data
+    - icloudpd-cookies:/root/.pyicloud
+  networks:
+    - photos
+
+services:
+  icloudpd:
+    <<: *icloudpd-common
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${ICLOUDPD_PORT:-8080}:8080"
+    command:
+      - icloudpd
+      - --directory
+      - /data/primary
+      - --username
+      - ${ICLOUD_USERNAME}
+      - --password-provider
+      - webui
+      - --mfa-provider
+      - webui
+      - --watch-with-interval
+      - ${WATCH_INTERVAL:-3600}
+      - --size
+      - adjusted
+      - --size
+      - original
+      - --library
+      - PrimarySync
+
+  icloudpd-hidden:
+    <<: *icloudpd-common
+    profiles: [hidden]
+    depends_on:
+      - icloudpd
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${ICLOUDPD_HIDDEN_PORT:-8081}:8080"
+    command:
+      - icloudpd
+      - --directory
+      - /data/hidden
+      - --username
+      - ${ICLOUD_USERNAME}
+      - --password-provider
+      - webui
+      - --mfa-provider
+      - webui
+      - --watch-with-interval
+      - ${WATCH_INTERVAL:-3600}
+      - --library
+      - ${HIDDEN_LIBRARY_ID}
+      - --album
+      - Hidden
+
+  icloudpd-shared:
+    <<: *icloudpd-common
+    profiles: [shared]
+    depends_on:
+      - icloudpd
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${ICLOUDPD_SHARED_PORT:-8082}:8080"
+    command:
+      - icloudpd
+      - --directory
+      - /data/shared
+      - --username
+      - ${ICLOUD_USERNAME}
+      - --password-provider
+      - webui
+      - --mfa-provider
+      - webui
+      - --watch-with-interval
+      - ${WATCH_INTERVAL:-3600}
+      - --library
+      - ${SHARED_LIBRARY_ID}
+
+volumes:
+  icloudpd-cookies:
+
+networks:
+  photos:
+    external: true
+    name: ${PHOTOS_NETWORK:-photos}

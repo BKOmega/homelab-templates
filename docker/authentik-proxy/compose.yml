@@ -1,0 +1,18 @@
+services:
+  authentik-proxy:
+    image: ghcr.io/goauthentik/proxy:${AUTHENTIK_TAG:-latest}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      AUTHENTIK_HOST: ${AUTHENTIK_HOST}
+      AUTHENTIK_HOST_BROWSER: ${AUTHENTIK_HOST_BROWSER:-}
+      AUTHENTIK_INSECURE: ${AUTHENTIK_INSECURE:-false}
+      AUTHENTIK_TOKEN: ${AUTHENTIK_TOKEN}
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-proxy}

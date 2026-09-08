@@ -1,0 +1,38 @@
+services:
+  arcane:
+    image: ghcr.io/getarcaneapp/manager:latest
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${ARCANE_PORT:-3552}:3552"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/London}
+      APP_URL: ${APP_URL:-http://localhost:3552}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      TLS_ENABLED: ${TLS_ENABLED:-false}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+      OIDC_ENABLED: ${OIDC_ENABLED:-false}
+      OIDC_ISSUER_URL: ${OIDC_ISSUER_URL:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_SCOPES: ${OIDC_SCOPES:-openid profile email}
+      OIDC_MERGE_ACCOUNTS: ${OIDC_MERGE_ACCOUNTS:-false}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+      - ./builds:/builds
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD", "/app/arcane", "health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - management
+
+networks:
+  management:
+    external: true
+    name: ${MANAGEMENT_NETWORK:-management}

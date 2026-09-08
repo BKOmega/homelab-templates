@@ -1,0 +1,31 @@
+services:
+  unpoller:
+    image: ghcr.io/unpoller/unpoller:${UNPOLLER_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      UP_POLLER_DEBUG: ${POLLER_DEBUG:-false}
+      UP_UNIFI_DYNAMIC: ${UNIFI_DYNAMIC:-false}
+      UP_UNIFI_DEFAULT_URL: ${UNIFI_URL}
+      UP_UNIFI_DEFAULT_USER: ${UNIFI_USER}
+      UP_UNIFI_DEFAULT_PASS: ${UNIFI_PASS}
+      UP_UNIFI_DEFAULT_SITE_0: ${UNIFI_SITE:-default}
+      UP_UNIFI_DEFAULT_SAVE_ALARMS: ${POLLER_SAVE_ALARMS:-true}
+      UP_UNIFI_DEFAULT_SAVE_ANOMALIES: ${POLLER_SAVE_ANOMALIES:-true}
+      UP_UNIFI_DEFAULT_SAVE_DPI: ${POLLER_SAVE_DPI:-false}
+      UP_UNIFI_DEFAULT_SAVE_EVENTS: ${POLLER_SAVE_EVENTS:-true}
+      UP_UNIFI_DEFAULT_SAVE_IDS: ${POLLER_SAVE_IDS:-false}
+      UP_INFLUXDB_DISABLE: ${INFLUXDB_DISABLE:-false}
+      UP_INFLUXDB_URL: ${INFLUXDB_URL}
+      UP_INFLUXDB_AUTH_TOKEN: ${INFLUXDB_TOKEN}
+      UP_INFLUXDB_ORG: ${INFLUXDB_ORG}
+      UP_INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      UP_INFLUXDB_USER: ${INFLUXDB_USER:-}
+      UP_INFLUXDB_PASS: ${INFLUXDB_PASSWORD:-}
+      UP_INFLUXDB_DB: ${INFLUXDB_DATABASE:-}
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    external: true
+    name: ${MONITORING_NETWORK:-monitoring}
