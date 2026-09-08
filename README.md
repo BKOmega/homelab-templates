@@ -16,6 +16,9 @@ runtime data, certificates, and host-specific topology are not included.
 
 Real `.env` files are ignored by Git. Never commit credentials or private key material.
 
+Many templates intentionally retain upstream floating image tags so they remain useful as
+examples. Pin images to a tested version or digest before using a template in production.
+
 ## Available Docker templates
 
 | Template | Purpose |

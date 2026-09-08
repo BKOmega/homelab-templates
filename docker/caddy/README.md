@@ -6,4 +6,6 @@ inventory, certificates, trust stores, OCSP cache, and private upstream map.
 
 Set the example site, upstream, and CrowdSec values in `.env`. The RFC 2136 variables are
 provided for users who replace `tls internal` with an RFC 2136 DNS challenge. The admin API
-is loopback-bound by default. Protect both it and the CrowdSec API key.
+listens only on the container's loopback interface and is not published by Compose. Run
+`docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile` to reload from inside
+the container. Protect the CrowdSec API key.
