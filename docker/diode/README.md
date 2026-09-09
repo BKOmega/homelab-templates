@@ -15,3 +15,21 @@ Before deployment:
 The real credential JSON is ignored by Git. Hydra runs with `--dev`, matching the source
 architecture; do not expose it or the Diode ingress to an untrusted network without a
 production Hydra configuration and TLS. Database init scripts run only on an empty volume.
+
+## How I use this pattern
+
+Diode is used as part of the network-discovery and source-of-truth workflow around NetBox
+rather than as a standalone web application.
+
+The useful topology includes ingress, ingestion, reconciliation, Redis, PostgreSQL and
+OAuth/Hydra components. That multi-service relationship is retained publicly while the real
+NetBox endpoint, OAuth credentials, databases and runtime state remain private.
+
+## Why this differs from the upstream example
+
+This template is deliberately reconstructed from the deployed topology rather than copied
+as a minimal application example. It preserves the dependency graph and authentication
+components because those relationships are the useful part of operating Diode.
+
+Hydra currently runs in development mode in this example and must not be treated as an
+internet-facing production configuration.
