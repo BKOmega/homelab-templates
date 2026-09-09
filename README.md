@@ -5,6 +5,17 @@ working home lab. This repository is a curated set of examples, not a backup of 
 production environment. Production credentials, private addressing, private domains,
 runtime data, certificates, and host-specific topology are not included.
 
+## Architecture and context
+
+These templates accompany the HomeLab documentation at
+[Bits & Bytes](https://www.bitsandbytes.co.uk/).
+
+The [Templates](https://www.bitsandbytes.co.uk/templates/) page groups the
+examples by architectural role and links them to related designs and runbooks.
+
+For the thinking behind publishing working configurations safely, see
+[Turning My Docker Stacks into Public Templates](https://www.bitsandbytes.co.uk/posts/turning-docker-stacks-into-public-templates/).
+
 ## Using a Docker template
 
 1. Choose a directory under `docker/`.
